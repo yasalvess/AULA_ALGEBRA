@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Tipos de Conjuntos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for card reveal animation */
+        .reveal-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
+            opacity: 0;
+            padding-top: 0;
+        }
+
+        .reveal-active {
+            max-height: 500px; /* Sufficiently large to reveal content */
+            opacity: 1;
+            padding-top: 1rem;
+        }
+        
+        /* KaTeX CSS for beautiful math rendering */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Dark background */
+        }
+        
+        /* Ensures the KaTeX elements are rendered correctly */
+        .katex-display > .katex {
+            white-space: normal;
+        }
+    </style>
+    <!-- KaTeX CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" xintegrity="sha384-GvrFh5U+sS8I7/y/QJmS7K2ZJ3xX8g1yVwXQ2Q2rZ1V+C3Y6F1l7ZlD5wZf9k2M" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" xintegrity="sha384-yW88z1Wj9fWq4bM4F0g4Hj7T4t87Ew4FjP8dM7T/04X8fR4z/T2K3q1D8X2T7I0R1N0Q2L8P9B7J6F5B4E0P" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" xintegrity="sha384-kM23jW1Pz8X62VdOqWvN3jQ8fQ6J2M7Yq1T1z2T8R1N0Q2L8P9B7J6F5B4E0P" crossorigin="anonymous"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-md bg-[#161b22] p-6 sm:p-8 rounded-2xl shadow-2xl border border-[#30363d] text-gray-200">
+        
+        <h1 class="text-3xl font-bold mb-2 text-center text-[#58a6ff]">Revisão de Conjuntos</h1>
+        <p class="text-center text-sm mb-6 text-gray-400">Flashcards interativos da tabela.</p>
+
+        <!-- Progress and Status -->
+        <div class="flex justify-between items-center mb-6 text-sm font-medium">
+            <span id="progress-text" class="text-yellow-400">1 de 9</span>
+            <span id="status-text" class="text-green-400">Preparado!</span>
+        </div>
+
+        <!-- Flashcard Content Area -->
+        <div id="flashcard-card" class="bg-[#21262d] p-6 rounded-xl border border-[#30363d] shadow-lg cursor-pointer">
+            
+            <!-- Card Front (Type) -->
+            <div id="card-front">
+                <p class="text-lg text-gray-400 mb-2">Tipo de Conjunto:</p>
+                <div id="set-type" class="text-4xl font-extrabold text-center text-white min-h-[5rem] flex items-center justify-center">
+                    Vazio
+                </div>
+            </div>
+
+            <!-- Card Back (Characteristic and Example) - Hidden by default -->
+            <div id="card-back" class="reveal-content border-t border-[#30363d]">
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-400">Característica:</p>
+                        <p id="set-characteristic" class="text-xl text-[#79c0ff]">Sem elementos</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-400">Exemplo:</p>
+                        <!-- KaTeX will render the math here -->
+                        <div id="set-example" class="text-2xl text-yellow-300 font-mono text-center">
+                            $\emptyset$
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <button id="reveal-button" class="flex-1 px-6 py-3 bg-[#2ea043] hover:bg-[#238636] text-white font-semibold rounded-lg transition duration-200 shadow-md">
+                Revelar Característica
+            </button>
+            <button id="next-button" disabled class="flex-1 px-6 py-3 bg-gray-600 text-gray-300 font-semibold rounded-lg transition duration-200 shadow-md opacity-50 cursor-not-allowed">
+                Próximo Conjunto (→)
+            </button>
+        </div>
+        
+        <p class="text-center text-xs mt-4 text-gray-500">Use as setas ← / → do teclado para navegar.</p>
+
+    </div>
+
+    <script>
+        // --- DADOS DA TABELA ---
+        const setsData = [
+            { type: "Vazio", example: "\\emptyset", characteristic: "Sem elementos" },
+            { type: "Unitário", example: "\\{5\\}", characteristic: "Um elemento" },
+            { type: "Finito", example: "\\{1, 2, 3\\}", characteristic: "Número limitado" },
+            { type: "Infinito", example: "\\{1, 2, 3, \\dots\\}", characteristic: "Não tem fim" },
+            { type: "Universal", example: "U", characteristic: "Contém todos os conjuntos estudados" },
+            { type: "Partes", example: "\\mathcal{P}(A)", characteristic: "Todos os subconjuntos de A" },
+            { type: "Iguais", example: "\\{1, 2, 3\\} = \\{3, 2, 1\\}", characteristic: "Mesmos elementos" },
+            { type: "Disjuntos", example: "\\{1, 2\\} \\text{ e } \\{3, 4\\}", characteristic: "Nenhum elemento em comum" },
+            { type: "Subconjunto", example: "A \\subseteq B", characteristic: "Todos os elementos de A estão em B" }
+        ];
+
+        // --- VARIÁVEIS DE ESTADO ---
+        let currentIndex = 0;
+        let isRevealed = false;
+        let shuffledData = [];
+
+        // --- REFERÊNCIAS DO DOM ---
+        const setTypeEl = document.getElementById('set-type');
+        const setCharacteristicEl = document.getElementById('set-characteristic');
+        const setExampleEl = document.getElementById('set-example');
+        const cardBackEl = document.getElementById('card-back');
+        const revealButton = document.getElementById('reveal-button');
+        const nextButton = document.getElementById('next-button');
+        const progressTextEl = document.getElementById('progress-text');
+        const statusTextEl = document.getElementById('status-text');
+        const flashcardCardEl = document.getElementById('flashcard-card');
+
+        /**
+         * Mistura um array (algoritmo Fisher-Yates).
+         * @param {Array} array
+         * @returns {Array} Array misturado
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Renderiza o conteúdo matemático usando KaTeX.
+         * É necessário chamar isso sempre que o conteúdo do cartão muda.
+         */
+        function renderMath() {
+            // KaTeX espera que o texto LaTeX esteja sem os delimitadores $$.
+            // Ele irá renderizar o elemento que o contém.
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ]
+                });
+            } else {
+                // Fallback simples se KaTeX não carregar (exibe o texto LaTeX bruto)
+                console.warn("KaTeX not loaded. Math will appear as raw text.");
+            }
+        }
+
+        /**
+         * Atualiza o cartão com os dados do índice atual.
+         * @param {boolean} reveal Se deve mostrar ou não a parte de trás do cartão imediatamente.
+         */
+        function displayCard(reveal = false) {
+            if (shuffledData.length === 0) return;
+
+            const currentSet = shuffledData[currentIndex];
+
+            // 1. Atualiza a parte da frente
+            setTypeEl.textContent = currentSet.type;
+            
+            // 2. Atualiza a parte de trás (texto bruto antes da renderização KaTeX)
+            setCharacteristicEl.textContent = currentSet.characteristic;
+            
+            // KaTeX precisa de um wrapper para o conteúdo.
+            setExampleEl.innerHTML = `$$${currentSet.example}$$`; 
+
+            // 3. Gerencia o estado de revelação
+            isRevealed = reveal;
+            if (isRevealed) {
+                cardBackEl.classList.add('reveal-active');
+                revealButton.textContent = "Revisado!";
+                revealButton.disabled = true;
+                nextButton.disabled = false;
+                nextButton.classList.remove('bg-gray-600', 'text-gray-300', 'opacity-50', 'cursor-not-allowed');
+                nextButton.classList.add('bg-[#58a6ff]', 'hover:bg-[#408fe3]');
+                statusTextEl.textContent = "Resposta Revelada";
+                statusTextEl.classList.add('text-yellow-400');
+                statusTextEl.classList.remove('text-green-400');
+            } else {
+                cardBackEl.classList.remove('reveal-active');
+                revealButton.textContent = "Revelar Característica";
+                revealButton.disabled = false;
+                nextButton.disabled = true;
+                nextButton.classList.remove('bg-[#58a6ff]', 'hover:bg-[#408fe3]');
+                nextButton.classList.add('bg-gray-600', 'text-gray-300', 'opacity-50', 'cursor-not-allowed');
+                statusTextEl.textContent = "Pense na Resposta...";
+                statusTextEl.classList.remove('text-yellow-400');
+                statusTextEl.classList.add('text-green-400');
+            }
+
+            // 4. Atualiza o progresso
+            progressTextEl.textContent = `${currentIndex + 1} de ${shuffledData.length}`;
+
+            // 5. Renderiza a matemática (com um pequeno delay para garantir que o DOM seja atualizado)
+            setTimeout(renderMath, 10);
+        }
+
+        /**
+         * Inicializa o aplicativo.
+         */
+        function initializeApp() {
+            // Copia e mistura os dados
+            shuffledData = shuffleArray([...setsData]);
+            currentIndex = 0;
+            displayCard(false);
+            
+            // Atualiza o texto do botão "Próximo" se for a última carta
+            if (shuffledData.length === 1) {
+                nextButton.textContent = "Recomeçar";
+            }
+        }
+
+        // --- LISTENERS DE EVENTOS ---
+
+        // Evento de clique no botão "Revelar"
+        revealButton.addEventListener('click', () => {
+            if (!isRevealed) {
+                displayCard(true);
+            }
+        });
+
+        // Evento de clique no botão "Próximo"
+        nextButton.addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex >= shuffledData.length) {
+                // Fim da rodada
+                initializeApp();
+                statusTextEl.textContent = "Rodada Recomeçada!";
+            } else {
+                // Próximo cartão
+                displayCard(false);
+            }
+            
+            // Atualiza o texto do botão para "Recomeçar" se for a última carta
+            if (currentIndex === shuffledData.length - 1 && currentIndex < setsData.length - 1) {
+                nextButton.textContent = "Recomeçar";
+            } else {
+                nextButton.textContent = "Próximo Conjunto (→)";
+            }
+        });
+
+        // Evento de clique no cartão (funciona como o botão "Revelar")
+        flashcardCardEl.addEventListener('click', () => {
+             if (!isRevealed) {
+                displayCard(true);
+            } else {
+                // Se estiver revelado, avança para o próximo
+                nextButton.click();
+            }
+        });
+        
+        // Listener para navegação por teclado (Setas)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && !nextButton.disabled) {
+                nextButton.click();
+            } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                 // Botão anterior (Não implementado nos botões, mas útil no teclado)
+                 e.preventDefault(); 
+                 currentIndex = (currentIndex > 0) ? currentIndex - 1 : 0;
+                 displayCard(false);
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                if (!isRevealed) {
+                    revealButton.click();
+                } else {
+                    nextButton.click();
+                }
+            }
+        });
+
+
+        // Inicia o aplicativo ao carregar
+        initializeApp();
+
+    </script>
+</body>
+</html>
